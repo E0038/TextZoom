@@ -16,7 +16,7 @@ class fracPickup(nn.Module):
         assert x_shape[2] == 1
 
         fracPickup_num = 1
-        
+
         h_list = 1.
         w_list = np.arange(x_shape[3])*2./(x_shape[3]-1)-1
         for i in range(fracPickup_num):
@@ -30,8 +30,8 @@ class fracPickup(nn.Module):
             w_list[idx] = value1
 
         grid = np.meshgrid(
-                w_list, 
-                h_list, 
+                w_list,
+                h_list,
                 indexing='ij'
             )
         grid = np.stack(grid, axis=-1)
@@ -43,6 +43,6 @@ class fracPickup(nn.Module):
             grid = grid.cuda()
         self.grid = Variable(grid, requires_grad=False)
 
-        x_offset = nn.functional.grid_sample(x, self.grid)
+        x_offset = nn.functional.grid_sample(x, self.grid,align_corners=True)
 
         return x_offset

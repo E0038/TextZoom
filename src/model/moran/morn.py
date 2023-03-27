@@ -13,11 +13,11 @@ class MORN(nn.Module):
         self.cuda = CUDA
 
         self.cnn = nn.Sequential(
-            nn.MaxPool2d(2, 2), 
+            nn.MaxPool2d(2, 2),
             nn.Conv2d(nc, 64, 3, 1, 1), nn.BatchNorm2d(64), nn.ReLU(True), nn.MaxPool2d(2, 2),
             nn.Conv2d(64, 128, 3, 1, 1), nn.BatchNorm2d(128), nn.ReLU(True), nn.MaxPool2d(2, 2),
-            nn.Conv2d(128, 64, 3, 1, 1), nn.BatchNorm2d(64), nn.ReLU(True), 
-            nn.Conv2d(64, 16, 3, 1, 1), nn.BatchNorm2d(16), nn.ReLU(True), 
+            nn.Conv2d(128, 64, 3, 1, 1), nn.BatchNorm2d(64), nn.ReLU(True),
+            nn.Conv2d(64, 16, 3, 1, 1), nn.BatchNorm2d(16), nn.ReLU(True),
             nn.Conv2d(16, 1, 3, 1, 1), nn.BatchNorm2d(1)
             )
 
@@ -27,8 +27,8 @@ class MORN(nn.Module):
         w_list = np.arange(self.targetW)*2./(self.targetW-1)-1
 
         grid = np.meshgrid(
-                w_list, 
-                h_list, 
+                w_list,
+                h_list,
                 indexing='ij'
             )
         grid = np.stack(grid, axis=-1)
@@ -38,7 +38,7 @@ class MORN(nn.Module):
         grid = torch.from_numpy(grid).type(self.inputDataType)
         if self.cuda:
             grid = grid.cuda()
-            
+
         self.grid = Variable(grid, requires_grad=False)
         self.grid_x = self.grid[:, :, :, 0].unsqueeze(3)
         self.grid_y = self.grid[:, :, :, 1].unsqueeze(3)
@@ -63,10 +63,10 @@ class MORN(nn.Module):
         offsets_nega = nn.functional.relu(-offsets, inplace=False)
         offsets_pool = self.pool(offsets_posi) - self.pool(offsets_nega)
 
-        offsets_grid = nn.functional.grid_sample(offsets_pool, grid)
+        offsets_grid = nn.functional.grid_sample(offsets_pool, grid, align_corners=True)
         offsets_grid = offsets_grid.permute(0, 2, 3, 1).contiguous()
         offsets_x = torch.cat([grid_x, grid_y + offsets_grid], 3)
-        x_rectified = nn.functional.grid_sample(x, offsets_x)
+        x_rectified = nn.functional.grid_sample(x, offsets_x, align_corners=True)
 
         for iteration in range(enhance):
             offsets = self.cnn(x_rectified)
@@ -75,9 +75,9 @@ class MORN(nn.Module):
             offsets_nega = nn.functional.relu(-offsets, inplace=False)
             offsets_pool = self.pool(offsets_posi) - self.pool(offsets_nega)
 
-            offsets_grid += nn.functional.grid_sample(offsets_pool, grid).permute(0, 2, 3, 1).contiguous()
+            offsets_grid += nn.functional.grid_sample(offsets_pool, grid, align_corners=True).permute(0, 2, 3, 1).contiguous()
             offsets_x = torch.cat([grid_x, grid_y + offsets_grid], 3)
-            x_rectified = nn.functional.grid_sample(x, offsets_x)
+            x_rectified = nn.functional.grid_sample(x, offsets_x, align_corners=True)
 
         if debug:
 
