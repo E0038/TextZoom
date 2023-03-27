@@ -1,0 +1,19 @@
+lmdb~=1.4.0
+opencv-python
+Pillow>=9.4.0
+six==1.16.0
+termcolor==2.2.0
+tqdm==4.65.0
+torch
+torchvision
+lmdb >= 0.98
+pillow >= 7.12
+numpy
+easydict
+pyyml
+thop
+colour
+editdistance
+protobuf
+lmdb
+matplotlib
